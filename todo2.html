@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> To-Do App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+
+    #taskInput {
+      width: 70%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    #addTaskBtn {
+      padding: 10px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #taskList {
+      list-style-type: none;
+      padding: 0;
+      width: 70%;
+    }
+
+    .task {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: #808080;
+    }
+
+    .deleteBtn, .editBtn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    .status {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1> To-Do App</h1>
+
+  <input type="text" id="taskInput" placeholder="Add a new task">
+  <button id="addTaskBtn" onclick="addTask()">Add Task</button>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      
+      loadTasks();
+    });
+
+    function addTask() {
+      var taskInput = document.getElementById("taskInput");
+      var taskList = document.getElementById("taskList");
+
+      if (taskInput.value.trim() !== "") {
+        var task = document.createElement("li");
+        task.className = "task";
+        task.innerHTML = `
+          <span class="status">Incomplete</span>
+          <span class="task-text">${taskInput.value}</span>
+          <button class="editBtn" onclick="editTask(this)">Edit</button>
+          <button class="deleteBtn" onclick="deleteTask(this)">Delete</button>
+        `;
+        
+        task.onclick = function () {
+          task.querySelector('.task-text').classList.toggle("completed");
+          toggleStatus(task);
+          saveTasks();
+        };
+
+        taskList.appendChild(task);
+        taskInput.value = "";
+
+        saveTasks();
+      }
+    }
+
+    function editTask(btn) {
+      var task = btn.parentNode;
+      var taskText = task.querySelector('.task-text');
+      var newText = prompt('Edit task:', taskText.textContent);
+
+      if (newText !== null) {
+        taskText.textContent = newText;
+        saveTasks();
+      }
+    }
+
+    function deleteTask(btn) {
+      var taskList = document.getElementById("taskList");
+      var task = btn.parentNode;
+      taskList.removeChild(task);
+
+      
+      saveTasks();
+    }
+
+    function toggleStatus(task) {
+      var statusSpan = task.querySelector('.status');
+      var isCompleted = task.querySelector('.task-text').classList.contains('completed');
+
+      if (isCompleted) {
+        statusSpan.textContent = 'Completed';
+        statusSpan.style.color = '#4caf50';
+      } else {
+        statusSpan.textContent = 'Incomplete';
+        statusSpan.style.color = '#f44336';
+      }
+    }
+
+    function saveTasks() {
+      var taskList = document.getElementById("taskList");
+      var tasks = taskList.getElementsByClassName("task");
+
+      var taskData = [];
+      for (var i = 0; i < tasks.length; i++) {
+        var taskText = tasks[i].querySelector('.task-text').textContent;
+        var isCompleted = tasks[i].querySelector('.task-text').classList.contains('completed');
+
+        taskData.push({ text: taskText, completed: isCompleted });
+      }
+
+      
+      localStorage.setItem('tasks', JSON.stringify(taskData));
+    }
+
+    function loadTasks() {
+      var taskList = document.getElementById("taskList");
+      var storedTasks = localStorage.getItem('tasks');
+
+      if (storedTasks) {
+        var tasks = JSON.parse(storedTasks);
+
+        tasks.forEach(function (taskData) {
+          var task = document.createElement("li");
+          task.className = "task";
+          task.innerHTML = `
+            <span class="status">${taskData.completed ? 'Completed' : 'Incomplete'}</span>
+            <span class="task-text ${taskData.completed ? 'completed' : ''}">${taskData.text}</span>
+            <button class="editBtn" onclick="editTask(this)">Edit</button>
+            <button class="deleteBtn" onclick="deleteTask(this)">Delete</button>
+          `;
+          
+          task.onclick = function () {
+            task.querySelector('.task-text').classList.toggle("completed");
+            toggleStatus(task);
+            saveTasks();
+          };
+
+          taskList.appendChild(task);
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>
